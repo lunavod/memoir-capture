@@ -1,0 +1,35 @@
+# Build
+build/
+out/
+cmake-build-*/
+
+# Python
+*.pyd
+*.pdb
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+
+# Runtime artifacts
+*.dll
+recordings/
+
+# IDE
+.vs/
+.vscode/
+*.user
+*.suo
+.idea/
+
+# vcpkg
+vcpkg/
+vcpkg_installed/
+
+# NVENC SDK
+external/nvenc/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store

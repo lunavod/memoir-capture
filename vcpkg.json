@@ -1,0 +1,12 @@
+{
+  "name": "memoir",
+  "version": "0.1.0",
+  "dependencies": [
+    "pybind11",
+    "cppwinrt",
+    {
+      "name": "ffmpeg",
+      "features": ["avcodec", "avformat", "swscale", "nvcodec"]
+    }
+  ]
+}
