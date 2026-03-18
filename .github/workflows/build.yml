@@ -1,10 +1,15 @@
-name: Build & Test
+name: Build & Release
 
 on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: write      # for creating GitHub Releases
+  id-token: write      # for PyPI trusted publishing
+
 jobs:
+  # ── Build wheels for each Python version ──────────────────────────
   build:
     runs-on: windows-latest
     strategy:
@@ -14,8 +19,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history for changelog
 
-      # --- Python ---
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
@@ -33,7 +39,7 @@ jobs:
           key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
           restore-keys: vcpkg-${{ runner.os }}-
 
-      # --- Build wheel ---
+      # --- Build ---
       - name: Install build tools
         run: pip install build numpy pytest
 
@@ -44,7 +50,7 @@ jobs:
       - name: Install wheel
         run: pip install (Get-ChildItem dist\*.whl).FullName
 
-      - name: Run tests (headless — capture tests skipped)
+      - name: Run tests (headless)
         run: pytest --headless -v
 
       # --- Upload artifact ---
@@ -53,3 +59,61 @@ jobs:
         with:
           name: wheel-${{ matrix.python-version }}
           path: dist/*.whl
+
+  # ── Create GitHub Release with changelog ──────────────────────────
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          path: wheels
+          pattern: wheel-*
+          merge-multiple: true
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Find previous tag
+          PREV=$(git tag --sort=-v:refname | sed -n '2p')
+          if [ -z "$PREV" ]; then
+            # First release — use all commits
+            LOG=$(git log --pretty=format:"- %s" ${{ github.ref_name }})
+          else
+            LOG=$(git log --pretty=format:"- %s" ${PREV}..${{ github.ref_name }})
+          fi
+          # Write to file for the release body
+          echo "$LOG" > changelog.md
+          echo "Changelog:"
+          cat changelog.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          body_path: changelog.md
+          files: wheels/*.whl
+
+  # ── Publish to PyPI via trusted publisher ─────────────────────────
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+
+    steps:
+      - name: Download all wheels
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: wheel-*
+          merge-multiple: true
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
