@@ -87,5 +87,8 @@ def test_meta_roundtrip():
 
 
 if __name__ == "__main__":
-    test_meta_from_recording()
+    import sys
+    headless = "--headless" in sys.argv
+    if not headless:
+        test_meta_from_recording()
     test_meta_roundtrip()
