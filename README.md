@@ -1,4 +1,4 @@
-# Memoir
+# memoir-capture
 
 Windows-native screen capture module with Python bindings for real-time frame analysis and deterministic replay recording.
 
@@ -23,17 +23,17 @@ Memoir captures frames from a window or monitor using Windows Graphics Capture (
 
 ## Installation
 
-### From wheel (prebuilt)
+### From PyPI (prebuilt)
 
 ```
-pip install memoir-0.1.0-cp313-cp313-win_amd64.whl
+pip install memoir-capture
 ```
 
 ### From source
 
 ```powershell
 # Clone with vcpkg
-git clone https://github.com/lunavod/Memoir.git
+git clone https://github.com/lunavod/memoir-capture.git
 cd Memoir
 git clone https://github.com/microsoft/vcpkg.git vcpkg --depth 1
 .\vcpkg\bootstrap-vcpkg.bat -disableMetrics

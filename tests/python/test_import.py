@@ -2,7 +2,7 @@ import memoir
 
 
 def test_ping():
-    assert memoir.ping() == "Memoir 0.1.0 loaded OK"
+    assert memoir.ping() == "memoir-capture 0.1.0 loaded OK"
 
 
 def test_version():

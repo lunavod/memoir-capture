@@ -16,11 +16,11 @@ struct FrameIterator {
 };
 
 PYBIND11_MODULE(_native, m) {
-    m.doc() = "Memoir \xe2\x80\x93 capture/replay module";
+    m.doc() = "memoir-capture \xe2\x80\x93 capture/replay module";
     m.attr("__version__") = MEMOIR_VERSION_STRING;
 
     m.def("ping", []() {
-        return std::string("Memoir ") + MEMOIR_VERSION_STRING + " loaded OK";
+        return std::string("memoir-capture ") + MEMOIR_VERSION_STRING + " loaded OK";
     }, "Health-check function");
 
     // ------------------------------------------------------------------

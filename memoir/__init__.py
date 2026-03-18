@@ -1,4 +1,4 @@
-"""Memoir — Windows-native capture/replay module with Python bindings."""
+"""memoir-capture — Windows-native capture/replay module with Python bindings."""
 
 from __future__ import annotations
 
