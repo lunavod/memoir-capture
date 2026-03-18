@@ -25,7 +25,7 @@ from memoir_capture._types import (  # noqa: E402
     WindowExeTarget,
     WindowTitleTarget,
 )
-from memoir_capture._engine import CaptureEngine  # noqa: E402
+from memoir_capture._engine import CaptureEngine, grab  # noqa: E402
 from memoir_capture._meta import MetaReader, MetaWriter  # noqa: E402
 
 __all__ = [
@@ -35,6 +35,7 @@ __all__ = [
     # engine
     "CaptureEngine",
     "FramePacket",
+    "grab",
     # targets
     "CaptureTarget",
     "MonitorTarget",

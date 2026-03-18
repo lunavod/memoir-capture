@@ -7,6 +7,9 @@ license = "MIT"
 requires-python = ">=3.10"
 dependencies = ["numpy"]
 
+[project.optional-dependencies]
+cv = ["opencv-python"]
+
 [project.urls]
 Repository = "https://github.com/lunavod/memoir-capture"
 

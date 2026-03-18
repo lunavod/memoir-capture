@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import os
-from typing import Iterator
+import threading
+from typing import Callable, Iterator
+
+import numpy as np
 
 from memoir_capture import _native
 from memoir_capture._types import (
@@ -154,3 +157,95 @@ class CaptureEngine:
     ) -> None:
         """Submit an analysis result for a frame (stub in v1)."""
         self._engine.submit_analysis_result(frame_id, flags, payload)
+
+    # -- callback-style frame delivery --
+
+    def on_frame(
+        self, callback: Callable[[FramePacket], None]
+    ) -> threading.Thread:
+        """Run *callback* for each frame in a daemon thread.
+
+        The callback receives a FramePacket that is automatically released
+        after the callback returns. The thread stops when the engine stops.
+
+        Returns the thread object (useful for joining).
+
+        Example::
+
+            engine.start()
+            engine.on_frame(lambda pkt: print(pkt.frame_id))
+        """
+        def _worker() -> None:
+            for pkt in self._engine.frames():
+                try:
+                    callback(pkt)
+                finally:
+                    pkt.release()
+
+        t = threading.Thread(target=_worker, daemon=True)
+        t.start()
+        return t
+
+
+# ---------------------------------------------------------------------------
+# Convenience: grab a single frame
+# ---------------------------------------------------------------------------
+
+def grab(
+    target: CaptureTarget,
+    *,
+    timeout_ms: int = 5000,
+    max_fps: float = 60.0,
+) -> np.ndarray:
+    """Capture a single frame and return it as a numpy array.
+
+    Creates a temporary engine, captures one frame, stops, and returns
+    the BGRA pixel data as a ``(H, W, 4)`` uint8 array.
+
+    Example::
+
+        img = memoir_capture.grab(MonitorTarget(0))
+    """
+    engine = CaptureEngine(target, max_fps=max_fps)
+    engine.start()
+    try:
+        pkt = engine.get_next_frame(timeout_ms)
+        if pkt is None:
+            raise RuntimeError("No frame captured within timeout")
+        with pkt:
+            return pkt.cpu_bgra.copy()
+    finally:
+        engine.stop()
+
+
+# ---------------------------------------------------------------------------
+# FramePacket extensions (monkey-patched onto the pybind11 class)
+# ---------------------------------------------------------------------------
+
+def _frame_repr(self: FramePacket) -> str:
+    return (
+        f"<FramePacket #{self.frame_id} "
+        f"{self.width}x{self.height} "
+        f"keys=0x{self.keyboard_mask:04x}>"
+    )
+
+
+def _frame_save_png(self: FramePacket, path: str | os.PathLike) -> None:
+    """Save frame as a PNG file. Requires opencv-python.
+
+    Example::
+
+        packet.save_png("debug_frame.png")
+    """
+    try:
+        import cv2
+    except ImportError:
+        raise ImportError(
+            "save_png requires opencv-python: "
+            "pip install memoir-capture[cv]"
+        ) from None
+    cv2.imwrite(str(path), self.cpu_bgra[:, :, :3])
+
+
+FramePacket.__repr__ = _frame_repr  # type: ignore[attr-defined]
+FramePacket.save_png = _frame_save_png  # type: ignore[attr-defined]

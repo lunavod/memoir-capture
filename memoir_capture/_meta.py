@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 
 from memoir_capture._types import MetaFile, MetaHeader, MetaKeyEntry, MetaRow
 
+from typing import Sequence
+
 if TYPE_CHECKING:
     from typing import BinaryIO
 
@@ -153,6 +155,36 @@ class MetaWriter:
             self._created_ns,
             len(self._keys), 0,
         ))
+
+    @staticmethod
+    def from_meta(
+        meta: MetaFile,
+        path: str | os.PathLike,
+        rows: Sequence[MetaRow] | None = None,
+    ) -> None:
+        """Write a MetaFile to disk. Optionally override the rows.
+
+        Example — strip keyboard data for privacy::
+
+            MetaWriter.from_meta(original, "clean.meta", rows=[
+                MetaRow(**{**r.__dict__, 'keyboard_mask': 0})  # won't work frozen
+                ...
+            ])
+
+        Or more practically::
+
+            modified_rows = [
+                MetaRow(r.frame_id, r.record_frame_index, r.capture_qpc,
+                        r.host_accept_qpc, 0, r.width, r.height,
+                        r.analysis_stride, r.flags)
+                for r in original.rows
+            ]
+            MetaWriter.from_meta(original, "clean.meta", rows=modified_rows)
+        """
+        use_rows = rows if rows is not None else meta.rows
+        with MetaWriter(path, meta.keys, meta.header.created_unix_ns) as w:
+            for row in use_rows:
+                w.write_row(row)
 
     def _write_keys(self) -> None:
         assert self._file is not None

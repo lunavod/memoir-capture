@@ -121,6 +121,25 @@ Created → Running → Stopping → Stopped
 
 If the captured window closes while running, the engine transitions to `Faulted`. `get_next_frame()` returns `None` and `frames()` stops iterating. Any active recording is finalized when you call `stop()` or the engine is garbage collected.
 
+## Quick Capture
+
+### Single frame (`grab`)
+
+If you just need one frame without managing an engine:
+
+```python
+import memoir_capture
+
+img = memoir_capture.grab(MonitorTarget(0))  # → numpy (H, W, 4) uint8
+```
+
+This creates a temporary engine, captures one frame, stops, and returns a copy of the pixel data. Useful for screenshots and quick tests.
+
+Parameters:
+- `target` — same as CaptureEngine
+- `timeout_ms` — how long to wait (default 5000ms)
+- `max_fps` — capture rate for the temporary engine (default 60.0)
+
 ## Getting Frames
 
 ### Blocking iterator (most common)
@@ -133,6 +152,19 @@ for packet in engine.frames():
 ```
 
 The iterator blocks until a frame is available and stops when the engine stops.
+
+### Callback-style (`on_frame`)
+
+Run a callback for each frame in a background thread:
+
+```python
+engine.start()
+engine.on_frame(lambda pkt: print(f"Frame {pkt.frame_id}: {pkt.width}x{pkt.height}"))
+# ... do other work while frames are processed in the background ...
+engine.stop()  # stops the callback thread
+```
+
+The callback receives a `FramePacket` that is automatically released after the callback returns. The method returns the `threading.Thread` object if you need to join it.
 
 ### Manual with timeout
 
@@ -176,6 +208,31 @@ packet.release()
 ```
 
 Accessing `cpu_bgra` after release raises `ValueError`. Double release is safe (no-op).
+
+### Saving frames to disk
+
+```python
+packet.save_png("debug_frame.png")
+```
+
+Requires `opencv-python`. Install with:
+
+```
+pip install memoir-capture[cv]
+```
+
+Raises `ImportError` with install instructions if opencv is not available.
+
+### repr
+
+FramePackets have a useful repr for debugging:
+
+```python
+>>> pkt
+<FramePacket #42 1920x1080 keys=0x0003>
+```
+
+Metadata fields (frame_id, width, height, keyboard_mask) remain accessible even after release.
 
 ## Recording
 

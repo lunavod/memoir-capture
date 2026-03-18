@@ -108,6 +108,83 @@ class MetaFile:
     rows: list[MetaRow]    # frame_id, record_frame_index, timestamps, keyboard, dimensions
 ```
 
+### Iterating and indexing
+
+`MetaFile` supports the sequence protocol — iterate, index, and get length directly:
+
+```python
+meta = MetaReader.read("session.meta")
+
+len(meta)       # number of rows
+meta[0]         # first row
+meta[-1]        # last row
+
+for row in meta:
+    print(row.frame_id)
+```
+
+### Key lookup
+
+```python
+w_key = meta.key_by_name("W")       # → MetaKeyEntry(bit_index=0, ...)
+key0  = meta.key_by_bit(0)          # → MetaKeyEntry(name="W", ...)
+```
+
+### Keyboard helpers
+
+Check which keys were pressed in a frame:
+
+```python
+row = meta[0]
+
+row.is_pressed("W", meta.keys)       # → True/False
+row.pressed_keys(meta.keys)           # → ["W", "LShift"]
+```
+
+Build a keyboard mask from key names (useful for synthetic data):
+
+```python
+mask = MetaFile.mask_from_names(meta.keys, ["W", "Space"])
+# → 0x0000000000000101
+```
+
+### Filtering rows
+
+```python
+# Rows where W was pressed
+w_frames = meta.rows_where(lambda r: r.is_pressed("W", meta.keys))
+
+# Rows in a QPC time range
+subset = meta.time_range(start_qpc=1000000, end_qpc=5000000)
+```
+
+### Time helpers
+
+```python
+# Convert a row's capture_qpc to seconds
+t = row.capture_time_sec(qpc_frequency)
+
+# Total session duration in seconds
+dur = meta.duration_sec(qpc_frequency)
+```
+
+Note: `qpc_frequency` is the QPC ticks-per-second value for the machine that recorded the session (typically ~10,000,000). This value is not stored in the meta file — you need to know it from the recording machine.
+
+### Merging sessions
+
+Combine multiple session files into one, renumbering `record_frame_index`:
+
+```python
+meta1 = MetaReader.read("session_001.meta")
+meta2 = MetaReader.read("session_002.meta")
+
+combined = MetaFile.concat(meta1, meta2)
+# combined has len(meta1) + len(meta2) rows
+# record_frame_index is 0, 1, 2, ... across the merged file
+```
+
+All inputs must have identical key tables.
+
 ## Writing with MetaWriter
 
 `MetaWriter` creates `.meta` files from Python — useful for synthetic replays, test data, or modifying existing recordings.
@@ -140,26 +217,28 @@ print(f"Wrote {writer.row_count} rows")
 
 ### Modifying an existing meta file
 
-```python
-from memoir_capture import MetaReader, MetaWriter
+Use `MetaWriter.from_meta` for quick round-trips:
 
-# Read original
+```python
+from memoir_capture import MetaReader, MetaWriter, MetaRow
+
 original = MetaReader.read("session.meta")
 
-# Write modified version
-with MetaWriter("session_modified.meta", original.keys) as w:
-    for row in original.rows:
-        # Clear keyboard state for privacy
-        w.write_row(MetaRow(
-            frame_id=row.frame_id,
-            record_frame_index=row.record_frame_index,
-            capture_qpc=row.capture_qpc,
-            host_accept_qpc=row.host_accept_qpc,
-            keyboard_mask=0,  # cleared
-            width=row.width,
-            height=row.height,
-            analysis_stride=row.analysis_stride,
-        ))
+# Strip keyboard data for privacy
+clean_rows = [
+    MetaRow(r.frame_id, r.record_frame_index, r.capture_qpc,
+            r.host_accept_qpc, 0, r.width, r.height,
+            r.analysis_stride, r.flags)
+    for r in original
+]
+
+MetaWriter.from_meta(original, "session_clean.meta", rows=clean_rows)
+```
+
+If you omit the `rows` parameter, it writes the original rows unchanged — useful for copying or re-serializing:
+
+```python
+MetaWriter.from_meta(original, "session_copy.meta")
 ```
 
 ## Alignment Guarantees
