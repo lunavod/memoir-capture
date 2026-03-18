@@ -67,14 +67,14 @@ def test_color_cycle_live_and_recorded(tmp_path):
     try:
         engine = CaptureEngine(
             WindowTitleTarget(WINDOW_NAME),
-            max_fps=10.0,
+            max_fps=60.0,
             record_width=WINDOW_W,
             record_height=WINDOW_H,
         )
         engine.start()
 
         # Warm up
-        drain_frames(engine, (128, 128, 128), 0.5)
+        drain_frames(engine, (128, 128, 128), 0.15)
 
         # Start recording and cycle colors
         base = str(tmp_path / "color_test")
@@ -82,14 +82,14 @@ def test_color_cycle_live_and_recorded(tmp_path):
 
         live_results = []
         for name, bgr in COLORS:
-            samples = drain_frames(engine, bgr, 1.0)
+            samples = drain_frames(engine, bgr, 0.15)
             if samples:
                 live_results.append((name, bgr, samples[-1]))
             else:
                 live_results.append((name, bgr, None))
 
         # Drain a few more frames to flush the pipeline
-        drain_frames(engine, COLORS[-1][1], 0.3)
+        drain_frames(engine, COLORS[-1][1], 0.1)
 
         engine.stop_recording()
         stats = engine.stats()
