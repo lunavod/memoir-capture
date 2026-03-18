@@ -31,9 +31,8 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~\AppData\Local\vcpkg\archives
-          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json') }}
-          restore-keys: vcpkg-${{ runner.os }}-
-          save-always: true   # save even if later steps fail
+          key: vcpkg-${{ runner.os }}-release-${{ hashFiles('vcpkg.json') }}
+          restore-keys: vcpkg-${{ runner.os }}-release-
 
       - name: Bootstrap vcpkg
         run: |
