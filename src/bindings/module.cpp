@@ -2,6 +2,7 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
+#include <cstring>
 #include <memoir/version.h>
 #include <memoir/capture_engine.h>
 #include <memoir/frame_packet.h>
@@ -78,7 +79,7 @@ PYBIND11_MODULE(_native, m) {
         .def(py::init(
             [](py::dict target, double max_fps, uint32_t queue_capacity,
                const std::string& /*analysis_format*/,
-               py::object /*key_map*/,
+               py::object key_map_obj,
                const std::string& /*drop_policy*/, bool capture_cursor,
                uint32_t record_width, uint32_t record_height,
                uint32_t record_gop,
@@ -111,6 +112,25 @@ PYBIND11_MODULE(_native, m) {
                 cfg.record_width           = record_width;
                 cfg.record_height          = record_height;
                 cfg.record_gop             = record_gop;
+
+                // Parse key_map: list of (bit_index, virtual_key, name)
+                if (!key_map_obj.is_none()) {
+                    auto key_list = key_map_obj.cast<py::list>();
+                    for (auto item : key_list) {
+                        auto t = item.cast<py::tuple>();
+                        if (t.size() != 3)
+                            throw py::value_error(
+                                "key_map entries must be "
+                                "(bit_index, virtual_key, name)");
+                        KeySpec k{};
+                        k.bit_index   = t[0].cast<uint32_t>();
+                        k.virtual_key = t[1].cast<uint32_t>();
+                        auto name = t[2].cast<std::string>();
+                        std::strncpy(k.name, name.c_str(),
+                                     sizeof(k.name) - 1);
+                        cfg.key_map.push_back(k);
+                    }
+                }
 
                 return std::make_unique<CaptureEngine>(cfg);
             }),

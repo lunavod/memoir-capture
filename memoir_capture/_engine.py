@@ -9,6 +9,7 @@ from memoir_capture import _native
 from memoir_capture._types import (
     CaptureTarget,
     EngineStats,
+    MetaKeyEntry,
     MonitorTarget,
     RecordingInfo,
     WindowExeTarget,
@@ -40,6 +41,10 @@ class CaptureEngine:
         max_fps: Maximum accepted frame rate.
         analysis_queue_capacity: Bounded queue size for Python delivery.
         capture_cursor: Include the cursor in captured frames.
+        key_map: List of keys to track in the keyboard bitmask. Each entry
+            is a MetaKeyEntry(bit_index, virtual_key, name). If None, uses
+            the default 40-key gaming set (WASD, arrows, modifiers, numbers,
+            F1-F5, etc.).
         record_width: Recording output width in pixels.
         record_height: Recording output height in pixels.
         record_gop: GOP size for recording (1 = all-intra).
@@ -52,14 +57,23 @@ class CaptureEngine:
         max_fps: float = 10.0,
         analysis_queue_capacity: int = 1,
         capture_cursor: bool = False,
+        key_map: list[MetaKeyEntry] | None = None,
         record_width: int = 1920,
         record_height: int = 1080,
         record_gop: int = 1,
     ) -> None:
+        # Convert MetaKeyEntry list to tuples for the C++ side
+        native_key_map = None
+        if key_map is not None:
+            native_key_map = [
+                (k.bit_index, k.virtual_key, k.name) for k in key_map
+            ]
+
         self._engine = _native.CaptureEngine(
             _target_to_dict(target),
             max_fps=max_fps,
             analysis_queue_capacity=analysis_queue_capacity,
+            key_map=native_key_map,
             capture_cursor=capture_cursor,
             record_width=record_width,
             record_height=record_height,
