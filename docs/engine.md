@@ -248,6 +248,23 @@ info = engine.start_recording("recordings/session_001")
 engine.stop_recording()
 ```
 
+You can also place the video and metadata files under a directory with
+separate names:
+
+```python
+info = engine.start_recording(
+    path="recordings/2026-03-18_14-30/",
+    video_name="data",
+    meta_name="keys",
+)
+# info.video_path = "recordings/2026-03-18_14-30/data.mp4"
+# info.meta_path  = "recordings/2026-03-18_14-30/keys.meta"
+```
+
+If the names already include `.mp4` / `.meta` extensions they are
+stripped automatically (so `video_name="data.mp4"` still produces
+`data.mp4`, not `data.mp4.mp4`).
+
 Recording can be started and stopped while capture continues. Only accepted frames (the ones delivered to Python) are recorded.
 
 ### Recording quality

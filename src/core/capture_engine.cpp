@@ -502,6 +502,30 @@ RecordingInfo CaptureEngine::StartRecording(const std::string& base_path) {
     return impl_->recordingSession->GetInfo();
 }
 
+RecordingInfo CaptureEngine::StartRecording(const std::string& base_path,
+                                             const std::string& video_path,
+                                             const std::string& meta_path) {
+    if (impl_->state.load() != EngineState::Running)
+        throw std::runtime_error("Engine not running");
+
+    std::lock_guard lk(impl_->recordingMutex);
+    if (impl_->recordingSession)
+        throw std::runtime_error("Already recording");
+
+    RecordingSession::Config rc;
+    rc.base_path     = base_path;
+    rc.video_path    = video_path;
+    rc.meta_path     = meta_path;
+    rc.record_width  = impl_->config.record_width;
+    rc.record_height = impl_->config.record_height;
+    rc.gop           = impl_->config.record_gop;
+    rc.fps           = impl_->config.max_fps;
+    rc.key_map       = impl_->config.key_map;
+
+    impl_->recordingSession = std::make_unique<RecordingSession>(rc);
+    return impl_->recordingSession->GetInfo();
+}
+
 void CaptureEngine::StopRecording() {
     std::lock_guard lk(impl_->recordingMutex);
     if (impl_->recordingSession) {

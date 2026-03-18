@@ -122,12 +122,64 @@ class CaptureEngine:
 
     # -- recording --
 
-    def start_recording(self, base_path: str | os.PathLike) -> RecordingInfo:
-        """Start recording accepted frames to ``base_path.mp4`` + ``.meta``.
+    def start_recording(
+        self,
+        base_path: str | os.PathLike | None = None,
+        *,
+        path: str | os.PathLike | None = None,
+        video_name: str | None = None,
+        meta_name: str | None = None,
+    ) -> RecordingInfo:
+        """Start recording accepted frames.
+
+        Two calling conventions:
+
+        1. ``start_recording("recordings/session1")``
+           — creates ``session1.mp4`` and ``session1.meta`` side by side.
+
+        2. ``start_recording(path="recordings/ts/", video_name="data",
+           meta_name="keys")``
+           — creates ``recordings/ts/data.mp4`` and
+           ``recordings/ts/keys.meta``.
+
+        If *video_name* ends with ``.mp4`` or *meta_name* ends with
+        ``.meta``, the extension is stripped so you don't get
+        ``data.mp4.mp4``.
 
         Raises RuntimeError if already recording.
         """
-        d = self._engine.start_recording(str(base_path))
+        if path is not None:
+            if base_path is not None:
+                raise TypeError(
+                    "Cannot specify both positional base_path and path="
+                )
+            if video_name is None or meta_name is None:
+                raise TypeError(
+                    "video_name= and meta_name= are required "
+                    "when using path="
+                )
+            # Strip redundant extensions
+            if video_name.endswith(".mp4"):
+                video_name = video_name[:-4]
+            if meta_name.endswith(".meta"):
+                meta_name = meta_name[:-5]
+
+            p = str(path)
+            video_path = os.path.join(p, video_name + ".mp4")
+            meta_path = os.path.join(p, meta_name + ".meta")
+            d = self._engine.start_recording_split(p, video_path, meta_path)
+        else:
+            if base_path is None:
+                raise TypeError(
+                    "start_recording() requires either base_path "
+                    "or path= with video_name= and meta_name="
+                )
+            if video_name is not None or meta_name is not None:
+                raise TypeError(
+                    "video_name= and meta_name= require path= "
+                    "instead of positional base_path"
+                )
+            d = self._engine.start_recording(str(base_path))
         return RecordingInfo(**d)
 
     def stop_recording(self) -> None:

@@ -184,6 +184,27 @@ PYBIND11_MODULE(_native, m) {
                  return d;
              },
              py::arg("base_path"))
+        .def("start_recording_split",
+             [](CaptureEngine& self,
+                const std::string& base_path,
+                const std::string& video_path,
+                const std::string& meta_path) {
+                 RecordingInfo info;
+                 { py::gil_scoped_release rel;
+                   info = self.StartRecording(base_path, video_path,
+                                              meta_path); }
+                 py::dict d;
+                 d["base_path"]  = info.base_path;
+                 d["video_path"] = info.video_path;
+                 d["meta_path"]  = info.meta_path;
+                 d["codec"]      = info.codec;
+                 d["width"]      = info.width;
+                 d["height"]     = info.height;
+                 return d;
+             },
+             py::arg("base_path"),
+             py::arg("video_path"),
+             py::arg("meta_path"))
         .def("stop_recording", [](CaptureEngine& self) {
             py::gil_scoped_release rel;
             self.StopRecording();

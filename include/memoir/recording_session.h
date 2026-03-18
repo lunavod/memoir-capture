@@ -29,6 +29,8 @@ class RecordingSession {
 public:
     struct Config {
         std::string base_path;
+        std::string video_path;   // if non-empty, overrides base_path + ".mp4"
+        std::string meta_path;    // if non-empty, overrides base_path + ".meta"
         uint32_t record_width  = 1920;
         uint32_t record_height = 1080;
         uint32_t gop = 1;

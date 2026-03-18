@@ -25,6 +25,9 @@ public:
 
     // Recording
     RecordingInfo StartRecording(const std::string& base_path);
+    RecordingInfo StartRecording(const std::string& base_path,
+                                 const std::string& video_path,
+                                 const std::string& meta_path);
     void StopRecording();
     bool IsRecording() const;
 

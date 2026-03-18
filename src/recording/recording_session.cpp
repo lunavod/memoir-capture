@@ -89,8 +89,12 @@ struct RecordingSession::Impl {
     // -----------------------------------------------------------------------
     void Init() {
         info.base_path  = config.base_path;
-        info.video_path = config.base_path + ".mp4";
-        info.meta_path  = config.base_path + ".meta";
+        info.video_path = config.video_path.empty()
+                            ? config.base_path + ".mp4"
+                            : config.video_path;
+        info.meta_path  = config.meta_path.empty()
+                            ? config.base_path + ".meta"
+                            : config.meta_path;
         info.codec      = "hevc";
         info.width      = config.record_width;
         info.height     = config.record_height;
