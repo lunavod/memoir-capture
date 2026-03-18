@@ -35,7 +35,7 @@ jobs:
 
       # --- Build wheel ---
       - name: Install build tools
-        run: pip install build numpy
+        run: pip install build numpy pytest
 
       - name: Build wheel
         run: python -m build --wheel
@@ -44,10 +44,8 @@ jobs:
       - name: Install wheel
         run: pip install (Get-ChildItem dist\*.whl).FullName
 
-      - name: Run tests (headless-safe — capture tests need a real display)
-        run: |
-          python tests/python/test_import.py
-          python tests/python/test_meta_reader.py --headless
+      - name: Run tests (headless — capture tests skipped)
+        run: pytest --headless -v
 
       # --- Upload artifact ---
       - name: Upload wheel

@@ -21,3 +21,7 @@ wheel.packages = ["memoir"]
 
 [tool.scikit-build.cmake.define]
 CMAKE_TOOLCHAIN_FILE = "vcpkg/scripts/buildsystems/vcpkg.cmake"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["capture: requires a live display for WGC capture"]
