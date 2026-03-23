@@ -50,8 +50,15 @@ jobs:
           }
 
       - name: Bootstrap vcpkg
+        env:
+          VCPKG_COMMIT: d90a9b159c08169f39adcd1b0f1ac0ca12c4b96c
         run: |
-          git clone https://github.com/microsoft/vcpkg.git vcpkg --depth 1
+          git init vcpkg
+          cd vcpkg
+          git remote add origin https://github.com/microsoft/vcpkg.git
+          git fetch --depth 1 origin $env:VCPKG_COMMIT
+          git checkout FETCH_HEAD
+          cd ..
           .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
 
       # --- Build ---
