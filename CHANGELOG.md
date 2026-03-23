@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.4
+
+### Fixed
+- Detect window closure via `IsWindow()` check in `GetNextFrame()` when the
+  WGC `Closed` event does not fire. The engine now reliably transitions to
+  `Faulted` with error `"Capture target closed"` when the captured window
+  is destroyed.
+
+### Added
+- Test for window-close detection (`test_window_close.py`).
+
 ## 0.1.3
 
 ### Added

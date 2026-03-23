@@ -78,6 +78,7 @@ struct CaptureEngine::Impl {
     wgc::GraphicsCaptureSession         session{nullptr};
     wgc::Direct3D11CaptureFramePool::FrameArrived_revoker frameArrivedRevoker;
     wgc::GraphicsCaptureItem::Closed_revoker              closedRevoker;
+    HWND targetHwnd{nullptr};  // non-null when capturing a window
 
     // Staging texture (single, recreated on size change)
     winrt::com_ptr<ID3D11Texture2D> stagingTex;
@@ -142,6 +143,7 @@ struct CaptureEngine::Impl {
         case CaptureTargetType::WindowTitleRegex: {
             HWND h = FindWindowByTitleRegex(config.target.value_wstr);
             if (!h) throw std::runtime_error("No window matching title pattern");
+            targetHwnd = h;
             winrt::check_hresult(interop->CreateForWindow(
                 h, winrt::guid_of<wgc::GraphicsCaptureItem>(),
                 winrt::put_abi(item)));
@@ -150,6 +152,7 @@ struct CaptureEngine::Impl {
         case CaptureTargetType::WindowExeRegex: {
             HWND h = FindWindowByExeRegex(config.target.value_wstr);
             if (!h) throw std::runtime_error("No window matching exe pattern");
+            targetHwnd = h;
             winrt::check_hresult(interop->CreateForWindow(
                 h, winrt::guid_of<wgc::GraphicsCaptureItem>(),
                 winrt::put_abi(item)));
@@ -447,7 +450,15 @@ std::shared_ptr<FramePacket> CaptureEngine::GetNextFrame(int timeout_ms) {
     }
     // timeout_ms == 0 → non-blocking poll (no wait)
 
-    if (impl_->frameQueue.empty()) return nullptr;
+    if (impl_->frameQueue.empty()) {
+        // WGC's Closed event is unreliable for window destruction, so
+        // fall back to checking the HWND directly.
+        if (impl_->targetHwnd && !::IsWindow(impl_->targetHwnd)) {
+            impl_->state.store(EngineState::Faulted);
+            impl_->SetError("Capture target closed");
+        }
+        return nullptr;
+    }
 
     auto pkt = impl_->frameQueue.front();
     impl_->frameQueue.pop();
