@@ -1,11 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
 
 ### Removed
-- `libx265` software encoder support. Bundling x265 (GPL) would force the
-  whole project — and any consumer — to be GPL-licensed. Recording now
-  requires a hardware HEVC encoder (`hevc_nvenc` or `hevc_amf`).
+- **Breaking:** `libx265` software encoder support. Bundling x265 (GPL)
+  would force the whole project — and any consumer — to be GPL-licensed.
+  Recording now requires a hardware HEVC encoder (`hevc_nvenc` or
+  `hevc_amf`). Calls passing `encoder="libx265"` will raise
+  `RuntimeError: Encoder not found: libx265`.
 
 ## 0.2.0
 
