@@ -66,41 +66,4 @@ describe('recording', () => {
     }
   })
 
-  it('records with libx265 encoder', () => {
-    tmpDir = mkdtempSync(join(tmpdir(), 'memoir-rec-'))
-    const base = join(tmpDir, 'x265_session')
-
-    const engine = new CaptureEngine({
-      target: { type: 'monitor', index: 0 },
-      maxFps: 10,
-      recordWidth: 1280,
-      recordHeight: 720,
-    })
-    engine.start()
-
-    try {
-      warmUp(engine)
-
-      const info = engine.startRecording(base, 'libx265')
-      expect(info.codec).toBe('libx265')
-
-      for (let i = 0; i < 20; i++) {
-        const pkt = engine.getNextFrame(5000)
-        expect(pkt).not.toBeNull()
-        pkt!.release()
-      }
-
-      engine.stopRecording()
-      const s = engine.stats()
-      expect(s.framesRecorded).toBe(20)
-
-      expect(existsSync(base + '.mp4')).toBe(true)
-      expect(statSync(base + '.mp4').size).toBeGreaterThan(1000)
-
-      const meta = readMeta(base + '.meta')
-      expect(meta.rows.length).toBe(20)
-    } finally {
-      engine.stop()
-    }
-  })
 })

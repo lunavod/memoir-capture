@@ -8,7 +8,7 @@ Memoir captures frames from a window or monitor using Windows Graphics Capture (
 
 - **WGC capture** — continuous frame capture from any window or monitor
 - **Zero-copy Buffers** — BGRA frames delivered as Node.js Buffers without copying
-- **Hardware-accelerated recording** — lossless HEVC encoding via NVENC, AMF, or x265 fallback
+- **Hardware-accelerated recording** — lossless HEVC encoding via NVENC or AMF
 - **Binary metadata** — `.meta` sidecar with per-frame keyboard state, timestamps, and frame IDs
 - **Dynamic recording** — start/stop recording without restarting capture
 - **Frame-accurate keyboard** — key state snapshot at the exact moment each frame is accepted
@@ -20,7 +20,7 @@ Memoir captures frames from a window or monitor using Windows Graphics Capture (
 - Windows 10 1903+
 - Node.js 18+
 - x64 architecture
-- NVIDIA GPU (NVENC), AMD GPU (AMF), or CPU-only (x265) for recording
+- NVIDIA GPU (NVENC) or AMD GPU (AMF) for recording
 
 ## Installation
 
@@ -204,11 +204,11 @@ Call `frame.release()` when done to free pixel memory.
 
 ### Recording
 
-Encoding: lossless HEVC (QP=0), YUV 4:4:4. Encoder selected automatically: `hevc_nvenc` (NVIDIA) → `hevc_amf` (AMD) → `libx265` (software). Force a specific encoder:
+Encoding: lossless HEVC (QP=0), YUV 4:4:4. Encoder selected automatically: `hevc_nvenc` (NVIDIA) → `hevc_amf` (AMD). Force a specific encoder:
 
 ```typescript
-const info = engine.startRecording('session', 'libx265')
-console.log(info.codec) // "libx265"
+const info = engine.startRecording('session', 'hevc_amf')
+console.log(info.codec) // "hevc_amf"
 ```
 
 ### Meta utilities

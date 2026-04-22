@@ -148,9 +148,8 @@ class CaptureEngine:
         ``data.mp4.mp4``.
 
         *encoder* forces a specific FFmpeg encoder name (e.g.
-        ``"hevc_nvenc"``, ``"hevc_amf"``, ``"hevc_mf"``, ``"libx265"``).
-        When *None* (the default), the best available encoder is selected
-        automatically.
+        ``"hevc_nvenc"``, ``"hevc_amf"``). When *None* (the default), the
+        best available encoder is selected automatically.
 
         Raises RuntimeError if already recording.
         """

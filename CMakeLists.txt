@@ -50,8 +50,7 @@ if(MEMOIR_BUILD_PYTHON)
     install(TARGETS _native LIBRARY DESTINATION memoir_capture)
 
     file(GLOB _FFMPEG_DLLS "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/av*.dll"
-                           "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/sw*.dll"
-                           "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/libx265.dll")
+                           "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/sw*.dll")
     install(FILES ${_FFMPEG_DLLS} DESTINATION memoir_capture)
 
     # Post-build: copy to source tree for local dev
@@ -104,7 +103,6 @@ if(MEMOIR_BUILD_NODE)
     file(GLOB _NODE_FFMPEG_DLLS
         "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/av*.dll"
         "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/sw*.dll"
-        "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/libx265.dll"
     )
     foreach(_dll ${_NODE_FFMPEG_DLLS})
         add_custom_command(TARGET memoir_node POST_BUILD

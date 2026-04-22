@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+- `libx265` software encoder support. Bundling x265 (GPL) would force the
+  whole project — and any consumer — to be GPL-licensed. Recording now
+  requires a hardware HEVC encoder (`hevc_nvenc` or `hevc_amf`).
+
 ## 0.2.0
 
 ### Added

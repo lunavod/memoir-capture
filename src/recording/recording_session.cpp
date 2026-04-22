@@ -113,10 +113,6 @@ struct RecordingSession::Impl {
             av_opt_set(encCtx->priv_data, "rc",      "cqp", 0);
             av_opt_set_int(encCtx->priv_data, "qp_i", 0, 0);
             av_opt_set_int(encCtx->priv_data, "qp_p", 0, 0);
-        } else if (std::strcmp(name, "libx265") == 0) {
-            av_opt_set(encCtx->priv_data, "preset", "ultrafast", 0);
-            av_opt_set(encCtx->priv_data, "x265-params",
-                       "lossless=1:log-level=warning", 0);
         }
 
         int ret = avcodec_open2(encCtx, codec, nullptr);
@@ -140,9 +136,9 @@ struct RecordingSession::Impl {
         info.width      = config.record_width;
         info.height     = config.record_height;
 
-        // --- Encoder (try hardware first, fall back to software) ---
+        // --- Encoder (hardware only; software x265 is GPL and excluded) ---
         static constexpr const char* encoder_names[] = {
-            "hevc_nvenc", "hevc_amf", "libx265"
+            "hevc_nvenc", "hevc_amf"
         };
 
         const AVCodec* codec = nullptr;
@@ -173,7 +169,7 @@ struct RecordingSession::Impl {
         if (!selected_name)
             throw std::runtime_error(
                 "No HEVC encoder available — install a GPU driver with "
-                "hardware encoding support, or build FFmpeg with libx265");
+                "NVENC or AMF hardware encoding support");
 
         info.codec = selected_name;
 

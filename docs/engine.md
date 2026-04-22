@@ -262,14 +262,14 @@ info = engine.start_recording(
 # info.meta_path  = "recordings/2026-03-18_14-30/keys.meta"
 ```
 
-To force a specific encoder (e.g. for machines without a supported GPU):
+To force a specific encoder:
 
 ```python
-info = engine.start_recording("session_001", encoder="libx265")
+info = engine.start_recording("session_001", encoder="hevc_amf")
 ```
 
-Valid encoder names: `"hevc_nvenc"`, `"hevc_amf"`, `"libx265"`. Passing
-an unknown or unavailable encoder raises `RuntimeError`.
+Valid encoder names: `"hevc_nvenc"`, `"hevc_amf"`. Passing an unknown or
+unavailable encoder raises `RuntimeError`.
 
 If the names already include `.mp4` / `.meta` extensions they are
 stripped automatically (so `video_name="data.mp4"` still produces
@@ -285,13 +285,15 @@ The encoder is selected automatically in priority order:
 
 1. **`hevc_nvenc`** — NVIDIA hardware (fastest, requires NVIDIA GPU with NVENC)
 2. **`hevc_amf`** — AMD hardware (requires AMD GPU with AMF support)
-3. **`libx265`** — software fallback (works on any machine, CPU-intensive)
+
+A hardware HEVC encoder is required; there is no software fallback because
+`libx265` is GPL-licensed and would force the whole project to GPL.
 
 You can force a specific encoder with the `encoder` parameter:
 
 ```python
-info = engine.start_recording("session_001", encoder="libx265")
-print(info.codec)  # "libx265"
+info = engine.start_recording("session_001", encoder="hevc_amf")
+print(info.codec)  # "hevc_amf"
 ```
 
 The `info.codec` field reports which encoder was actually used, which is
