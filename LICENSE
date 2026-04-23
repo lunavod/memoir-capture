@@ -20,8 +20,30 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
----
+================================================================================
+Third-party components
+================================================================================
 
-This software links against FFmpeg, which is licensed under the
-GNU Lesser General Public License (LGPL) version 2.1 or later.
-See https://www.ffmpeg.org/legal.html for details.
+This software dynamically links against FFmpeg libraries (libavcodec,
+libavformat, libavutil, libswscale, libswresample), distributed as separate
+DLLs alongside this module.
+
+FFmpeg is licensed under the GNU Lesser General Public License version 2.1
+or later (LGPL-2.1-or-later). The FFmpeg build bundled with this module is
+compiled without GPL-licensed components — no --enable-gpl, no libx264, no
+libx265, no libpostproc in GPL mode, no nonfree features. See vcpkg.json for
+the exact feature set (avcodec, avformat, swscale, nvcodec).
+
+Bundled FFmpeg version: 8.0.1.
+
+Full LGPL 2.1 license text: see LICENSE-LGPL-2.1 in this distribution, or
+https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+
+FFmpeg source code for the bundled version is available at
+https://ffmpeg.org/releases/ffmpeg-8.0.1.tar.xz and through vcpkg's ffmpeg
+port at the version pinned in this repository.
+
+Per LGPL 2.1, recipients of this software are entitled to replace the
+bundled FFmpeg DLLs with their own LGPL-compatible builds of the same
+shared libraries. See https://www.ffmpeg.org/legal.html for FFmpeg's own
+guidance on redistribution.
