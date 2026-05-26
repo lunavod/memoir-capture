@@ -33,7 +33,7 @@ pip install memoir-capture
 
 ```powershell
 # Clone with vcpkg
-git clone https://github.com/lunavod/memoir-capture.git
+git clone https://github.com/overlooker-dev/memoir-capture.git
 cd Memoir
 git clone https://github.com/microsoft/vcpkg.git vcpkg --depth 1
 .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
