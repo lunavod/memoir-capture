@@ -85,6 +85,10 @@ struct CaptureEngine::Impl {
     uint32_t stagingW = 0;
     uint32_t stagingH = 0;
 
+    // Current FramePool size (for ContentSize-change detection)
+    uint32_t poolW = 0;
+    uint32_t poolH = 0;
+
     // Frame queue
     std::queue<std::shared_ptr<FramePacket>> frameQueue;
     mutable std::mutex queueMutex;
@@ -201,6 +205,26 @@ struct CaptureEngine::Impl {
             if (!frame) return;
 
             framesSeen++;
+
+            // Track ContentSize changes — WGC clamps frames to the pool size,
+            // so if the target window resized (incl. growing from a tiny
+            // launch-time size), the pool must be recreated to match.
+            {
+                auto cs = frame.ContentSize();
+                uint32_t cw = static_cast<uint32_t>(cs.Width);
+                uint32_t ch = static_cast<uint32_t>(cs.Height);
+                if (cw > 0 && ch > 0 && (cw != poolW || ch != poolH)) {
+                    framePool.Recreate(
+                        winrtDevice,
+                        dx::DirectXPixelFormat::B8G8R8A8UIntNormalized,
+                        2, {static_cast<int32_t>(cw),
+                            static_cast<int32_t>(ch)});
+                    poolW = cw;
+                    poolH = ch;
+                    // Continue processing this frame at its old (texture) size;
+                    // subsequent FrameArrived events will deliver at new size.
+                }
+            }
 
             // FPS limiting
             int64_t now = GetQPC();
@@ -373,6 +397,8 @@ void CaptureEngine::Start() {
         impl_->winrtDevice,
         dx::DirectXPixelFormat::B8G8R8A8UIntNormalized,
         2, size);
+    impl_->poolW = static_cast<uint32_t>(size.Width);
+    impl_->poolH = static_cast<uint32_t>(size.Height);
 
     // Subscribe FrameArrived
     impl_->frameArrivedRevoker = impl_->framePool.FrameArrived(
@@ -426,6 +452,10 @@ void CaptureEngine::Stop() {
     impl_->captureItem = nullptr;
 
     impl_->stagingTex = nullptr;
+    impl_->stagingW = 0;
+    impl_->stagingH = 0;
+    impl_->poolW = 0;
+    impl_->poolH = 0;
     impl_->context    = nullptr;
     impl_->device     = nullptr;
     impl_->winrtDevice = nullptr;

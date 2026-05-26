@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.1
+
+### Fixed
+- `CaptureEngine` now recreates the WGC `FramePool` when the target
+  window's `ContentSize` changes. Previously the pool was sized once at
+  `start()` and frames were clamped to that initial size — so a window
+  that was tiny when capture began (e.g. a game still on its launch
+  splash reporting 160×28) produced frames stuck at that resolution even
+  after the window grew. Matches Microsoft's canonical
+  `ScreenCaptureforHWND` pattern.
+
 ## 0.3.0
 
 ### Removed
